@@ -29,7 +29,7 @@ def upgrade() -> None:
     sa.Column('last_name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('role', sa.VARCHAR(), server_default='user', nullable=False),
     sa.Column('is_verified', sa.Boolean(), nullable=False),
-    sa.Column('password_hash', sa.VARCHAR(), nullable=False),
+    sa.Column('password_hash', sa.LargeBinary(), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(), nullable=True),
     sa.Column('update_at', postgresql.TIMESTAMP(), nullable=True),
     sa.PrimaryKeyConstraint('uid')

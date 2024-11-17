@@ -19,7 +19,7 @@ class User(SQLModel, table=True):
     )
     is_verified: bool = Field(default=False)
     password_hash: str = Field(
-        sa_column=Column(pg.VARCHAR, nullable=False), exclude=True
+        sa_column=Column(pg.BYTEA, nullable=False), exclude=True
     )
     created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
     update_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
