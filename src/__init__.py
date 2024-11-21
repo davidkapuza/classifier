@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.users.router import users_router
+from src.user.router import users_router
 
 version = "v1"
 

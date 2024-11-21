@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import uuid
 import bcrypt
 import jwt
 
@@ -36,3 +37,33 @@ def verify_confirmation_token(token: str) -> str | None:
         return payload.get("email")
     except jwt.PyJWTError:
         return None
+
+
+def sign_tokens(user_data: dict) -> tuple[str, str]:
+    access_token_exp = datetime.now() + timedelta(
+        minutes=Config.AUTH_JWT_TOKEN_EXPIRES_IN
+    )
+    refresh_token_exp = datetime.now() + timedelta(
+        minutes=Config.AUTH_REFRESH_TOKEN_EXPIRES_IN
+    )
+
+    access_token_payload = {
+        "user": user_data,
+        "exp": int(access_token_exp.timestamp()),
+        "jti": str(uuid.uuid4()),
+    }
+
+    refresh_token_payload = {
+        "user": user_data,
+        "exp": int(refresh_token_exp.timestamp()),
+        "jti": str(uuid.uuid4()),
+    }
+
+    access_token = jwt.encode(
+        access_token_payload, Config.AUTH_JWT_SECRET, Config.AUTH_JWT_ALGORITHM
+    )
+    refresh_token = jwt.encode(
+        refresh_token_payload, Config.AUTH_REFRESH_SECRET, Config.AUTH_JWT_ALGORITHM
+    )
+
+    return [access_token, refresh_token]

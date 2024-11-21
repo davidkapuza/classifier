@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
-
+from src.db.models import User
 
 class CreateUserDto(BaseModel):
     first_name: str = Field(max_length=25)
@@ -41,3 +41,9 @@ class LoginDto(BaseModel):
             }
         }
     }
+
+
+class LoginResponseDto(BaseModel):
+    access_token: str
+    refresh_token: str
+    user: User

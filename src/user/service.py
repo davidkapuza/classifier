@@ -32,3 +32,12 @@ class UserService:
         await self.session.commit()
 
         return new_user
+
+    async def confirm_user(self, email: str) -> User:
+        user = await self.get_user_by_email(email)
+
+        user.is_verified = True
+
+        await self.session.commit()
+
+        return user
