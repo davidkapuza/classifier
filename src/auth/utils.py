@@ -4,7 +4,6 @@ import bcrypt
 import jwt
 import logging
 
-from src.db.models import User
 from src.config import Config
 
 
@@ -22,10 +21,10 @@ def get_password_hash(password: str) -> str:
 
 
 def create_confirmation_token(email: str) -> str:
-    expire = datetime.now() + timedelta(minutes=Config.AUTH_EMAIL_CONFIRMATION_EXPIRES)
+    expire = datetime.now() + timedelta(minutes=Config.AUTH_CONFIRMATION_EXPIRES)
     data = {"exp": expire, "email": email}
     return jwt.encode(
-        data, Config.AUTH_EMAIL_CONFIRMATION_SECRET, Config.AUTH_JWT_ALGORITHM
+        data, Config.AUTH_CONFIRMATION_SECRET, Config.AUTH_JWT_ALGORITHM
     )
 
 
@@ -33,7 +32,7 @@ def verify_confirmation_token(token: str) -> str | None:
     try:
         payload = jwt.decode(
             token,
-            Config.AUTH_EMAIL_CONFIRMATION_SECRET,
+            Config.AUTH_CONFIRMATION_SECRET,
             algorithms=[Config.AUTH_JWT_ALGORITHM],
         )
         return payload.get("email")

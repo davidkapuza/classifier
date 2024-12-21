@@ -2,8 +2,13 @@ from fastapi import Request
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
 
+from src.redis.service import RedisService
+
 from .utils import verify_access_token, verify_refresh_token
 from .errors import Unauthorized
+
+
+redis_service = RedisService()
 
 
 class TokenBearer(HTTPBearer):
@@ -19,6 +24,9 @@ class TokenBearer(HTTPBearer):
         token = creds.credentials
 
         token_data = self.verify_token(token)
+
+        if await redis_service.token_in_blocklist(token_data["jti"]):
+            raise Unauthorized()
 
         return token_data
 

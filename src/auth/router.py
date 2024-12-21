@@ -1,12 +1,19 @@
 from fastapi import APIRouter, Depends, status, BackgroundTasks, HTTPException
+from fastapi.responses import JSONResponse
 
-from .dtos import LoginDto, LoginResponseDto
+from .dtos import (
+    LoginDto,
+    LoginResponseDto,
+    ResetPasswordConfirmationDto,
+    ResetPasswordDto,
+)
 from .dependencies import RefreshTokenBearer, AccessTokenBearer
 from .errors import (
     UserAlreadyExists,
     InvalidCredentials,
     AccountNotVerified,
     InvalidVerificationToken,
+    NotFound,
 )
 from src.user.service import UsersService
 from src.user.dependencies import get_user_service
@@ -88,8 +95,8 @@ async def verify_user(
     return user
 
 
-@auth_router.get("/refresh_tokens")
-async def refresh_tokens(
+@auth_router.get("/refresh")
+async def refresh(
     token_data: dict = Depends(refresh_token_bearer),
     users_service: UsersService = Depends(get_user_service),
 ):
@@ -97,9 +104,7 @@ async def refresh_tokens(
     user = await users_service.get_user_by_email(user_email)
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-        )
+        raise NotFound()
 
     tokens = sign_tokens(user.model_dump())
 
@@ -116,3 +121,36 @@ async def logout(
 ):
     jti = token_data["jti"]
     await redis_service.blocklist_token(token_jti=jti)
+
+
+@auth_router.post("/reset-password")
+async def reset_password(
+    reset_password_dto: ResetPasswordDto,
+    bg_tasks: BackgroundTasks,
+    mail_service: MailService = Depends(),
+):
+    user_email = reset_password_dto.email
+
+    token = create_confirmation_token(email=user_email)
+
+    bg_tasks.add_task(
+        mail_service.send_reset_password_email, email=user_email, token=token
+    )
+
+    return JSONResponse(content=None, status_code=status.HTTP_200_OK)
+
+
+@auth_router.post("/reset-password-confirm/{token}")
+async def reset_password_confirm(
+    token: str,
+    passwords: ResetPasswordConfirmationDto,
+    users_service: UsersService = Depends(get_user_service),
+):
+    user_email = verify_confirmation_token(token)
+    print(user_email)
+    if not user_email:
+        raise InvalidVerificationToken()
+
+    user = await users_service.update_password(user_email, passwords.new_password)
+
+    return user

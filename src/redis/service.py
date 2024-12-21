@@ -11,3 +11,7 @@ class RedisService:
 
     async def blocklist_token(self, token_jti: str):
         await self.redis.set(name=token_jti, value="", ex=JTI_EXPIRY)
+
+    async def token_in_blocklist(self, jti: str) -> bool:
+        jti = await self.redis.get(jti)
+        return jti is not None

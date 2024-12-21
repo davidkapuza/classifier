@@ -27,6 +27,10 @@ class Unauthorized(AuthException):
     pass
 
 
+class NotFound(AuthException):
+    pass
+
+
 def register_auth_errors(app: FastAPI):
     app.add_exception_handler(
         UserAlreadyExists,
@@ -63,5 +67,12 @@ def register_auth_errors(app: FastAPI):
         Unauthorized,
         create_exception_handler(
             status_code=status.HTTP_401_UNAUTHORIZED,
+        ),
+    )
+
+    app.add_exception_handler(
+        NotFound,
+        create_exception_handler(
+            status_code=status.HTTP_404_NOT_FOUND,
         ),
     )

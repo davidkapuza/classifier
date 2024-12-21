@@ -1,4 +1,5 @@
 from sqlmodel import select
+from src.auth.errors import NotFound
 from src.db.models import User
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,9 +38,21 @@ class UsersService:
         user = await self.get_user_by_email(email)
 
         if not user:
-            raise Exception("User not found")
+            raise NotFound()
 
         user.is_verified = True
+
+        await self.session.commit()
+
+        return user
+
+    async def update_password(self, email: str, new_password: str) -> User:
+        user = await self.get_user_by_email(email)
+
+        if not user:
+            raise NotFound()
+
+        user.password_hash = get_password_hash(new_password)
 
         await self.session.commit()
 
